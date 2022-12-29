@@ -50,7 +50,7 @@ struct part_flash_info
 static const struct fal_partition *partition_table_def = FAL_PART_TABLE;
 static const struct fal_partition *partition_table = NULL;
 /* partition and flash object information cache table */
-static struct part_flash_info part_flash_cache[FAL_FLASH_DEV_TABLE_LEN] = { 0 };
+static struct part_flash_info part_flash_cache[FAL_PART_TABLE_LEN] = { 0 };
 
 #else /* FAL_PART_HAS_TABLE_CFG */
 
@@ -170,7 +170,7 @@ int fal_partition_init(void)
 
 #ifdef FAL_PART_HAS_TABLE_CFG
     partition_table = &partition_table_def[0];
-    partition_table_len = FAL_FLASH_DEV_TABLE_LEN;
+    partition_table_len = FAL_PART_TABLE_LEN;
 #else
     /* load partition table from the end address FAL_PART_TABLE_END_OFFSET, error return 0 */
     long part_table_offset = FAL_PART_TABLE_END_OFFSET;
