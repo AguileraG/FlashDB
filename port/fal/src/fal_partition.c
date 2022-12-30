@@ -75,7 +75,7 @@ static size_t partition_table_len = 0;
  */
 void fal_show_part_table(void)
 {
-    char *item1 = "name", *item2 = "flash_dev";
+    const char *item1 = "name", *item2 = "flash_dev";
     size_t i, part_name_max = strlen(item1), flash_dev_name_max = strlen(item2);
     const struct fal_partition *part;
 
