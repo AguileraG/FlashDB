@@ -149,7 +149,7 @@ fdb_err_t _fdb_write_status(fdb_db_t db, uint32_t addr, uint8_t status_table[], 
         return FDB_NO_ERR;
     }
 #if (FDB_WRITE_GRAN == 1)
-    result = _fdb_flash_write(db, addr + byte_index, (uint32_t *)&status_table[byte_index], 1, sync);
+    result = _fdb_flash_write(db, addr + byte_index, &status_table[byte_index], 1, sync);
 #else /*  (FDB_WRITE_GRAN == 8) ||  (FDB_WRITE_GRAN == 32) ||  (FDB_WRITE_GRAN == 64) */
     /* write the status by write granularity
      * some flash (like stm32 onchip) NOT supported repeated write before erase */
@@ -163,7 +163,7 @@ size_t _fdb_read_status(fdb_db_t db, uint32_t addr, uint8_t status_table[], size
 {
     FDB_ASSERT(status_table);
 
-    _fdb_flash_read(db, addr, (uint32_t *) status_table, FDB_STATUS_TABLE_SIZE(total_num));
+    _fdb_flash_read(db, addr, status_table, FDB_STATUS_TABLE_SIZE(total_num));
 
     return _fdb_get_status(status_table, total_num);
 }
@@ -182,7 +182,7 @@ uint32_t _fdb_continue_ff_addr(fdb_db_t db, uint32_t start, uint32_t end)
         } else {
             read_size = end - start;
         }
-        _fdb_flash_read(db, start, (uint32_t *) buf, read_size);
+        _fdb_flash_read(db, start, buf, read_size);
         for (i = 0; i < read_size; i++) {
             if (last_data != 0xFF && buf[i] == 0xFF) {
                 addr = start + i;

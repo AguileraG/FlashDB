@@ -220,7 +220,7 @@ static bool get_kv_from_cache(fdb_kvdb_t db, const char *name, size_t name_len, 
         if ((db->kv_cache_table[i].addr != FDB_DATA_UNUSED) && (db->kv_cache_table[i].name_crc == name_crc)) {
             char saved_name[FDB_KV_NAME_MAX];
             /* read the KV name in flash */
-            _fdb_flash_read((fdb_db_t)db, db->kv_cache_table[i].addr + KV_HDR_DATA_SIZE, (uint32_t *) saved_name, FDB_KV_NAME_MAX);
+            _fdb_flash_read((fdb_db_t)db, db->kv_cache_table[i].addr + KV_HDR_DATA_SIZE, saved_name, FDB_KV_NAME_MAX);
             if (!strncmp(name, saved_name, name_len)) {
                 *addr = db->kv_cache_table[i].addr;
                 if (db->kv_cache_table[i].active >= 0xFFFF - FDB_KV_CACHE_TABLE_SIZE) {
@@ -255,7 +255,7 @@ static uint32_t find_next_kv_addr(fdb_kvdb_t db, uint32_t start, uint32_t end)
 #endif /* FDB_KV_USING_CACHE */
 
     for (; start < end && start + sizeof(buf) < end; start += (sizeof(buf) - sizeof(uint32_t))) {
-        _fdb_flash_read((fdb_db_t)db, start, (uint32_t *) buf, sizeof(buf));
+        _fdb_flash_read((fdb_db_t)db, start, buf, sizeof(buf));
         for (i = 0; i < sizeof(buf) - sizeof(uint32_t) && start + i < end; i++) {
 #ifndef FDB_BIG_ENDIAN            /* Little Endian Order */
             magic = buf[i] + (buf[i + 1] << 8) + (buf[i + 2] << 16) + (buf[i + 3] << 24);
@@ -344,7 +344,7 @@ static fdb_err_t read_kv(fdb_kvdb_t db, fdb_kv_t kv)
             size = crc_data_len - len;
         }
 
-        _fdb_flash_read((fdb_db_t)db, kv->addr.start + KV_NAME_LEN_OFFSET + len, (uint32_t *) buf, FDB_WG_ALIGN(size));
+        _fdb_flash_read((fdb_db_t)db, kv->addr.start + KV_NAME_LEN_OFFSET + len, buf, FDB_WG_ALIGN(size));
         calc_crc32 = fdb_calc_crc32(calc_crc32, buf, size);
     }
     /* check CRC32 */
@@ -355,7 +355,7 @@ static fdb_err_t read_kv(fdb_kvdb_t db, fdb_kv_t kv)
         kv->crc_is_ok = true;
         /* the name is behind aligned KV header */
         kv_name_addr = kv->addr.start + KV_HDR_DATA_SIZE;
-        _fdb_flash_read((fdb_db_t)db, kv_name_addr, (uint32_t *) kv->name, FDB_WG_ALIGN(kv_hdr.name_len));
+        _fdb_flash_read((fdb_db_t)db, kv_name_addr, kv->name, FDB_WG_ALIGN(kv_hdr.name_len));
         /* the value is behind aligned name */
         kv->addr.value = kv_name_addr + FDB_WG_ALIGN(kv_hdr.name_len);
         kv->value_len = kv_hdr.value_len;
@@ -946,8 +946,8 @@ static fdb_err_t move_kv(fdb_kvdb_t db, fdb_kv_t kv)
             } else {
                 size = kv_len - len;
             }
-            _fdb_flash_read((fdb_db_t)db, kv->addr.start + KV_MAGIC_OFFSET + len, (uint32_t *) buf, FDB_WG_ALIGN(size));
-            result = _fdb_flash_write((fdb_db_t)db, kv_addr + KV_MAGIC_OFFSET + len, (uint32_t *) buf, size, true);
+            _fdb_flash_read((fdb_db_t)db, kv->addr.start + KV_MAGIC_OFFSET + len, buf, FDB_WG_ALIGN(size));
+            result = _fdb_flash_write((fdb_db_t)db, kv_addr + KV_MAGIC_OFFSET + len, buf, size, true);
         }
         _fdb_write_status((fdb_db_t)db, kv_addr, status_table, FDB_KV_STATUS_NUM, FDB_KV_WRITE, true);
 
@@ -1075,8 +1075,8 @@ static fdb_err_t align_write(fdb_kvdb_t db, uint32_t addr, const uint32_t *buf, 
 
     align_remain = size - FDB_WG_ALIGN_DOWN(size);
     if (result == FDB_NO_ERR && align_remain) {
-        memcpy(align_data, (uint8_t *)buf + FDB_WG_ALIGN_DOWN(size), align_remain);
-        result = _fdb_flash_write((fdb_db_t)db, addr + FDB_WG_ALIGN_DOWN(size), (uint32_t *) align_data, align_data_size, false);
+        memcpy(align_data, (const uint8_t *)buf + FDB_WG_ALIGN_DOWN(size), align_remain);
+        result = _fdb_flash_write((fdb_db_t)db, addr + FDB_WG_ALIGN_DOWN(size), align_data, align_data_size, false);
     }
 
     return result;
@@ -1131,7 +1131,7 @@ static fdb_err_t create_kv_blob(fdb_kvdb_t db, kv_sec_info_t sector, const char 
         }
         /* write key name */
         if (result == FDB_NO_ERR) {
-            result = align_write(db, kv_addr + KV_HDR_DATA_SIZE, (uint32_t *) key, kv_hdr.name_len);
+            result = align_write(db, kv_addr + KV_HDR_DATA_SIZE, (const void *) key, kv_hdr.name_len);
 
 #ifdef FDB_KV_USING_CACHE
             if (!is_full) {
@@ -1339,7 +1339,7 @@ __reload:
                     } else {
                         size = kv->value_len - len;
                     }
-                    _fdb_flash_read((fdb_db_t)db, kv->addr.value + len, (uint32_t *) buf, FDB_WG_ALIGN(size));
+                    _fdb_flash_read((fdb_db_t)db, kv->addr.value + len, buf, FDB_WG_ALIGN(size));
                     if (print_value) {
                         FDB_PRINT("%.*s", (int)size, buf);
                     } else if (!fdb_is_str(buf, size)) {
