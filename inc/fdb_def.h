@@ -103,7 +103,7 @@ struct fdb_default_kv_node {
 };
 
 struct fdb_default_kv {
-    struct fdb_default_kv_node *kvs;
+    const struct fdb_default_kv_node *kvs;
     size_t num;
 };
 
