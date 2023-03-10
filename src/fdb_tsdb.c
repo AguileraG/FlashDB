@@ -426,6 +426,7 @@ void fdb_tsl_iter(fdb_tsdb_t db, fdb_tsl_cb cb, void *arg)
     }
 
     sec_addr = db->oldest_addr;
+    db_lock(db);
     /* search all sectors */
     do {
         traversed_len += db_sec_size(db);
@@ -444,11 +445,13 @@ void fdb_tsl_iter(fdb_tsdb_t db, fdb_tsl_cb cb, void *arg)
                 read_tsl(db, &tsl);
                 /* iterator is interrupted when callback return true */
                 if (cb(&tsl, arg)) {
+                    db_unlock(db);
                     return;
                 }
             } while ((tsl.addr.index = get_next_tsl_addr(&sector, &tsl)) != FAILED_ADDR);
         }
     } while ((sec_addr = get_next_sector_addr(db, &sector, traversed_len)) != FAILED_ADDR);
+    db_unlock(db);
 }
 
 /**
@@ -479,6 +482,7 @@ void fdb_tsl_iter_by_time(fdb_tsdb_t db, fdb_time_t from, fdb_time_t to, fdb_tsl
     }
 
     sec_addr = oldest_addr;
+    db_lock(db);
     /* search all sectors */
     do {
         traversed_len += db_sec_size(db);
@@ -514,18 +518,21 @@ void fdb_tsl_iter_by_time(fdb_tsdb_t db, fdb_time_t from, fdb_time_t to, fdb_tsl
                         if (tsl.time >= from && tsl.time <= to) {
                             /* iterator is interrupted when callback return true */
                             if (cb(&tsl, cb_arg)) {
-                                return;
+                                goto __exit;
                             }
                         } else {
-                            return;
+                            goto __exit;
                         }
                     }
                 } while ((tsl.addr.index = get_next_tsl_addr(&sector, &tsl)) != FAILED_ADDR);
             }
         } else if (sector.status == FDB_SECTOR_STORE_EMPTY) {
-            return;
+            goto __exit;
         }
     } while ((sec_addr = get_next_sector_addr(db, &sector, traversed_len)) != FAILED_ADDR);
+
+__exit:
+    db_unlock(db);
 }
 
 static bool query_count_cb(fdb_tsl_t tsl, void *arg)
