@@ -297,7 +297,7 @@ fdb_err_t _fdb_flash_write(fdb_db_t db, uint32_t addr, const void *buf, size_t s
 #endif /* FDB_USING_FILE_MODE */
     } else {
 #ifdef FDB_USING_FAL_MODE
-        if (fal_partition_write(db->storage.part, addr, (uint8_t *)buf, size) < 0)
+        if (fal_partition_write(db->storage.part, addr, buf, size) < 0)
         {
             result = FDB_WRITE_ERR;
         }
