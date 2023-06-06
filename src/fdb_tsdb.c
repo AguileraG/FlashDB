@@ -21,7 +21,7 @@
 #define FDB_LOG_TAG "[tsl]"
 /* rewrite log prefix */
 #undef  FDB_LOG_PREFIX2
-#define FDB_LOG_PREFIX2()                         FDB_PRINT("[%s] ", db_name(db))
+#define FDB_LOG_PREFIX2()                         FDB_PRINT("[%s] ", (db) ? db_name(db): "(null)")
 
 #if defined(FDB_USING_TSDB)
 
