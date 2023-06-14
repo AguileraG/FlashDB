@@ -12,12 +12,12 @@
 #include <string.h>
 
 /* flash device table, must defined by user */
-#if !defined(FAL_FLASH_DEV_TABLE)
-#error "You must defined flash device table (FAL_FLASH_DEV_TABLE) on 'fal_cfg.h'"
-#endif
+// #if !defined(FAL_FLASH_DEV_TABLE)
+// #error "You must defined flash device table (FAL_FLASH_DEV_TABLE) on 'fal_cfg.h'"
+// #endif
 
-static const struct fal_flash_dev * const device_table[] = FAL_FLASH_DEV_TABLE;
-static const size_t device_table_len = sizeof(device_table) / sizeof(device_table[0]);
+static const struct fal_flash_dev * const * device_table = FAL_FLASH_DEV_TABLE;
+static const size_t device_table_len = FAL_FLASH_DEV_TABLE_LEN;
 static uint8_t init_ok = 0;
 
 /**
