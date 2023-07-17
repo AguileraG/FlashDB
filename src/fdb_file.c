@@ -21,7 +21,7 @@ static void get_db_file_path(fdb_db_t db, uint32_t addr, char *path, size_t size
 #define DB_NAME_MAX            8
 
     /* from db_name.fdb.0 to db_name.fdb.n */
-    char file_name[DB_NAME_MAX + 4 + 10];
+    char file_name[DB_NAME_MAX + 4 + 13];
     uint32_t sec_addr = FDB_ALIGN_DOWN(addr, db->sec_size);
     int index = sec_addr / db->sec_size;
 
@@ -218,4 +218,3 @@ fdb_err_t _fdb_file_erase(fdb_db_t db, uint32_t addr, size_t size)
 #endif /* defined(FDB_USING_FILE_LIBC_MODE) */
 
 #endif /* FDB_USING_FILE_MODE */
-
