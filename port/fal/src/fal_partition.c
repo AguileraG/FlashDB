@@ -29,9 +29,9 @@ struct part_flash_info
 #ifdef FAL_PART_HAS_TABLE_CFG
 
 /* check partition table definition */
-#if !defined(FAL_PART_TABLE)
-#error "You must defined FAL_PART_TABLE on 'fal_cfg.h'"
-#endif
+// #if !defined(FAL_PART_TABLE)
+// #error "You must defined FAL_PART_TABLE on 'fal_cfg.h'"
+// #endif
 
 #ifdef __CC_ARM                        /* ARM Compiler */
     #define SECTION(x)                 __attribute__((section(x)))
@@ -46,10 +46,10 @@ struct part_flash_info
     #error not supported tool chain
 #endif /* __CC_ARM */
 //USED static const struct fal_partition partition_table_def[] SECTION("FalPartTable") = FAL_PART_TABLE;
-static const struct fal_partition partition_table_def[] = FAL_PART_TABLE;
+static const struct fal_partition *partition_table_def = FAL_PART_TABLE;
 static const struct fal_partition *partition_table = NULL;
 /* partition and flash object information cache table */
-static struct part_flash_info part_flash_cache[sizeof(partition_table_def) / sizeof(partition_table_def[0])] = { 0 };
+static struct part_flash_info part_flash_cache[FAL_PART_TABLE_LEN] = { 0 };
 
 #else /* FAL_PART_HAS_TABLE_CFG */
 
@@ -74,7 +74,7 @@ static size_t partition_table_len = 0;
  */
 void fal_show_part_table(void)
 {
-    char *item1 = "name", *item2 = "flash_dev";
+    const char *item1 = "name", *item2 = "flash_dev";
     size_t i, part_name_max = strlen(item1), flash_dev_name_max = strlen(item2);
     const struct fal_partition *part;
 
@@ -169,7 +169,7 @@ int fal_partition_init(void)
 
 #ifdef FAL_PART_HAS_TABLE_CFG
     partition_table = &partition_table_def[0];
-    partition_table_len = sizeof(partition_table_def) / sizeof(partition_table_def[0]);
+    partition_table_len = FAL_PART_TABLE_LEN;
 #else
     /* load partition table from the end address FAL_PART_TABLE_END_OFFSET, error return 0 */
     long part_table_offset = FAL_PART_TABLE_END_OFFSET;
