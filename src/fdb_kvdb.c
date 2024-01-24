@@ -389,7 +389,7 @@ static fdb_err_t read_kv(fdb_kvdb_t db, fdb_kv_t kv)
         result = FDB_READ_ERR;
         /* try read the KV name, maybe read name has error */
         kv_name_addr = kv->addr.start + KV_HDR_DATA_SIZE;
-        _fdb_flash_read((fdb_db_t)db, kv_name_addr, (uint32_t *)kv->name, FDB_WG_ALIGN(name_len));
+        _fdb_flash_read((fdb_db_t)db, kv_name_addr, kv->name, FDB_WG_ALIGN(name_len));
         FDB_INFO("Error: Read the KV (%.*s@0x%08" PRIX32 ") CRC32 check failed!\n", name_len, kv->name, kv->addr.start);
     } else {
         kv->crc_is_ok = true;
@@ -433,7 +433,7 @@ static fdb_err_t read_sector_info(fdb_kvdb_t db, uint32_t addr, kv_sec_info_t se
     sector->addr = addr;
     sector->magic = sec_hdr.magic;
     /* check magic word and combined value */
-    if (sector->magic != SECTOR_MAGIC_WORD || 
+    if (sector->magic != SECTOR_MAGIC_WORD ||
         (sec_hdr.combined != SECTOR_NOT_COMBINED && sec_hdr.combined != SECTOR_COMBINED)) {
         sector->check_ok = false;
         sector->combined = SECTOR_NOT_COMBINED;
@@ -485,7 +485,7 @@ static fdb_err_t read_sector_info(fdb_kvdb_t db, uint32_t addr, kv_sec_info_t se
 #ifdef FDB_KV_USING_CACHE
         update_sector_cache(db, sector);
     } else {
-        kv_sec_info_t sector_cache = get_sector_from_cache(db, sector->addr);
+        sector_cache = get_sector_from_cache(db, sector->addr);
         if (!sector_cache) {
             sector->empty_kv = FAILED_ADDR;
             sector->remain = 0;
